@@ -1,19 +1,19 @@
 const createError = require("http-errors");
 const express = require("express");
-const favicon = require('serve-favicon');
+const favicon = require("serve-favicon");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
-var flash = require('express-flash');
+var flash = require("express-flash");
 const handlebars = require("express-handlebars");
 const indexRouter = require("./routes/index");
 const usersRouter = require("./routes/users");
 const postsRouter = require("./routes/posts");
-var sessions = require('express-session');
+var sessions = require("express-session");
 const session = require("express-session");
 const { post } = require("./routes/users");
-var mysqlSession = require('express-mysql-session')(sessions);
-var commentRouter = require('./routes/comments');
+var mysqlSession = require("express-mysql-session")(sessions);
+var commentRouter = require("./routes/comments");
 // var searchEng = require('./public/js/frontendjs');
 
 const app = express();
@@ -28,19 +28,26 @@ app.engine(
     helpers: {
       emptyObject: (obj) => {
         return !(obj.constructor === Object && Object.keys(obj).length == 0);
-      }
+      },
     }, //adding new helpers to handlebars for extra functionality
   })
 );
 
-var mysqlSessionStore = new mysqlSession({/* using default options */},require('./config/db'))
-app.use(sessions({
-  key: "csid",
-  secret: "this is a secret from csc317",
-  store: mysqlSessionStore,
-  resave: false,
-  saveUninitialized: false
-}));
+var mysqlSessionStore = new mysqlSession(
+  {
+    /* using default options */
+  },
+  require("./config/db")
+);
+app.use(
+  sessions({
+    key: "csid",
+    secret: "this is a secret from csc317",
+    store: mysqlSessionStore,
+    resave: false,
+    saveUninitialized: false,
+  })
+);
 
 app.use(flash());
 
@@ -48,38 +55,37 @@ app.use(flash());
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "hbs");
 
-
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use(favicon(__dirname + '/public/favicon.ico'));
+app.use(favicon(__dirname + "/public/favicon.ico"));
 app.use("/public", express.static(path.join(__dirname, "public")));
 
 app.use((req, res, next) => {
   console.log(req.session);
-  if(req.session.username){
+  if (req.session.username) {
     res.locals.logged = true;
   }
   next();
-})
+});
 
 app.use("/", indexRouter); // route middleware from ./routes/index.js
 app.use("/users", usersRouter); // route middleware from ./routes/users.js
-app.use('/posts', postsRouter);
-app.use('/comments', commentRouter);
+app.use("/posts", postsRouter);
+app.use("/comments", commentRouter);
 // app.use('/searchs', searchEng);
 
-
 /**
- * Catch all route, if we get to here then the 
+ * Catch all route, if we get to here then the
  * resource requested could not be found.
  */
-app.use((req,res,next) => {
-  next(createError(404, `The route ${req.method} : ${req.url} does not exist.`));
-})
-
+app.use((req, res, next) => {
+  next(
+    createError(404, `The route ${req.method} : ${req.url} does not exist.`)
+  );
+});
 
 /**
  * Error Handler, used to render the error html file
